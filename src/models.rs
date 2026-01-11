@@ -10,12 +10,12 @@ pub mod responses {
         pub session: SessionResponse,
     }
 
-    /// Response to an Authentication request. 
-    /// 
+    /// Response to an Authentication request.
+    ///
     /// Contains a Session Key and the username of the authenticated Last.fm user and a subscriber ID.
     /// Only the Session Key is used internally by the crate; the other values are exposed as they may have some value
     /// for clients.
-    /// 
+    ///
     /// [Authentication API Requests Documentation](https://www.last.fm/api/authspec)
     #[derive(Deserialize, Debug, Clone)]
     pub struct SessionResponse {
@@ -31,10 +31,10 @@ pub mod responses {
 
     /// Response to a Now Playing request.
     ///
-    /// Represents a response to a Now Playing API request. This type can often be ignored by clients. All of the 
+    /// Represents a response to a Now Playing API request. This type can often be ignored by clients. All of the
     /// fields are [`CorrectableString`] types, which can be used to see if Last.fm applied any metadata correction
-    /// to your artist, song or album. 
-    /// 
+    /// to your artist, song or album.
+    ///
     /// [Now Playing Request API Documentation](https://www.last.fm/api/show/track.updateNowPlaying)
     #[derive(Deserialize, Debug)]
     pub struct NowPlayingResponse {
@@ -56,10 +56,10 @@ pub mod responses {
     }
 
     /// Response to a Scrobble request
-    /// 
-    /// Represents a response to a Scrobble API request. Contains the results of the Scrobble call, including any 
+    ///
+    /// Represents a response to a Scrobble API request. Contains the results of the Scrobble call, including any
     /// metadata corrections the Last.fm API made to the arist/track/album submitted.
-    /// 
+    ///
     /// [Scrobble Request API Documentation](https://www.last.fm/api/show/track.scrobble)
     #[derive(Deserialize, Debug, WrappedVec)]
     #[CollectionName = "ScrobbleList"]
@@ -74,10 +74,10 @@ pub mod responses {
     }
 
     /// Response to a Batch Scrobble request
-    /// 
+    ///
     /// Represents a response to a batched Scrobble request. Contains the results of the Scrobble call, including
     /// any metadata corrections the Last.fm API made to the arist/track/album submitted.
-    /// 
+    ///
     /// [Scrobble Request API Documentation](https://www.last.fm/api/show/track.scrobble)
     #[derive(Debug)]
     pub struct BatchScrobbleResponse {
@@ -101,31 +101,32 @@ pub mod responses {
         where
             D: serde::Deserializer<'de>,
         {
-
             let deser_result: json::Value = serde::Deserialize::deserialize(de)?;
             let scrobbles = match deser_result {
-                obj@json::Value::Object(_) => {
-                    let scrobble: ScrobbleResponse = serde_json::from_value(obj).expect("Parsing scrobble failed");
-                    ScrobbleList::from(vec!(scrobble))
+                obj @ json::Value::Object(_) => {
+                    let scrobble: ScrobbleResponse =
+                        serde_json::from_value(obj).expect("Parsing scrobble failed");
+                    ScrobbleList::from(vec![scrobble])
                 }
-                arr@json::Value::Array(_) => {
-                    let scrobbles: ScrobbleList = serde_json::from_value(arr).expect("Parsing scrobble list failed");
+                arr @ json::Value::Array(_) => {
+                    let scrobbles: ScrobbleList =
+                        serde_json::from_value(arr).expect("Parsing scrobble list failed");
                     scrobbles
-                },
-                _ => ScrobbleList::from(vec!())
+                }
+                _ => ScrobbleList::from(vec![]),
             };
             Ok(scrobbles)
         }
     }
 
-    /// Represents a string that can be marked as 'corrected' by the Last.fm API. 
-    /// 
+    /// Represents a string that can be marked as 'corrected' by the Last.fm API.
+    ///
     /// All Scrobble/NowPlaying responses have their fields as `CorrectableString`'s. The API will sometimes change
     /// the artist/song name/album name data that you have submitted. For example - it is common for Bjork to be turned
-    /// into Björk by the API; the modified artist field would be marked `corrected = true`, `text = "Björk". 
-    /// 
+    /// into Björk by the API; the modified artist field would be marked `corrected = true`, `text = "Björk".
+    ///
     /// Most clients can ignore these corrections, but the information is exposed for clients that require it.
-    /// 
+    ///
     /// [Meta-Data Correction Documentation](https://www.last.fm/api/scrobbling#meta-data-corrections)
     #[derive(Deserialize, Debug)]
     pub struct CorrectableString {
@@ -160,13 +161,13 @@ pub mod metadata {
 
     use std::collections::HashMap;
 
-    /// Repesents a single music track played at a point in time. In the Last.fm universe, this is known as a 
+    /// Repesents a single music track played at a point in time. In the Last.fm universe, this is known as a
     /// "scrobble".
-    /// 
+    ///
     /// Takes an artist, track and optional album name. Can hold a timestamp indicating when the track was listened to.
     /// `Scrobble` objects are submitted via [`Scrobbler::now_playing`], [`Scrobbler::scrobble`] and batches of
     /// Scrobbles are sent via [`Scrobbler::scrobble_batch`].
-    /// 
+    ///
     /// [`Scrobbler::now_playing`]: struct.Scrobbler.html#method.now_playing
     /// [`Scrobbler::scrobble`]: struct.Scrobbler.html#method.scrobble
     /// [`Scrobbler::scrobble_batch`]: struct.Scrobbler.html#method.scrobble_batch
@@ -183,16 +184,15 @@ pub mod metadata {
     }
 
     impl Scrobble {
-    
-        /// Constructs a new Scrobble instance, representing a single playthrough of a music track. `Scrobble`s are 
+        /// Constructs a new Scrobble instance, representing a single playthrough of a music track. `Scrobble`s are
         /// submitted to Last.fm via an instance of [`Scrobbler`]. A new `Scrobble` requires an artist name and song/track
         /// name, and an optional album name.
-        /// 
+        ///
         /// # Example
         /// ```ignore
         /// let scrobble = Scrobble::new("Example Artist", "Example Track", Some("Example Album"));
         /// ```
-        /// 
+        ///
         /// [`Scrobbler`]: struct.Scrobbler.html
         pub fn new(artist: &str, track: &str, album: Option<&str>) -> Self {
             Self {
@@ -203,9 +203,9 @@ pub mod metadata {
             }
         }
 
-        /// Sets the timestamp (date/time of play) of a Scrobble. Used in a builder-style pattern, typically after 
+        /// Sets the timestamp (date/time of play) of a Scrobble. Used in a builder-style pattern, typically after
         /// [`Scrobble::new`].
-        /// 
+        ///
         /// # Example
         /// ```ignore
         /// let mut scrobble = Scrobble::new(...).with_timestamp(12345);
@@ -213,9 +213,9 @@ pub mod metadata {
         ///
         /// # Note on Timestamps
         /// Scrobbles without timestamps are automatically assigned a timestamp of the current time when
-        /// submitted via [`Scrobbler::scrobble`] or [`Scrobbler::scrobble_batch`]. Timestamps only need to be 
+        /// submitted via [`Scrobbler::scrobble`] or [`Scrobbler::scrobble_batch`]. Timestamps only need to be
         /// explicitly set when you are submitting a Scrobble at a point in the past, or in the future.
-        /// 
+        ///
         /// [`Scrobble::new`]: struct.Scrobble.html#method.new
         /// [`Scrobbler::scrobble`]: struct.Scrobbler.html#method.scrobble
         /// [`Scrobbler::scrobble_batch`]: struct.Scrobbler.html#method.scrobble_batch
@@ -227,7 +227,7 @@ pub mod metadata {
         /// Converts the Scrobble metadata (track name, artist & album name) into a `HashMap`. Map keys are
         /// `"track"` and `"artist"`. If the album is set, it will be present in the map under key `"album"`.
         /// If a timestamp is set, it will be present in the map under key `"timestamp"`.
-        /// 
+        ///
         /// # Example
         /// ```ignore
         /// let scrobble = Scrobble::new("Example Artist", ...);
@@ -264,11 +264,10 @@ pub mod metadata {
         pub fn album(&self) -> Option<&str> {
             self.album.as_deref()
         }
-    
     }
 
     /// Converts from tuple of `&str`s in the form `(artist, track, album)`
-    /// 
+    ///
     /// Designed to make it easier to cooperate with other track info types.
     impl From<&(&str, &str, &str)> for Scrobble {
         fn from((artist, track, album): &(&str, &str, &str)) -> Self {
@@ -277,7 +276,7 @@ pub mod metadata {
     }
 
     /// Converts from tuple of `String`s in the form `(artist, track, album)`
-    /// 
+    ///
     /// Designed to make it easier to cooperate with other track info types.
     impl From<&(String, String, String)> for Scrobble {
         fn from((artist, track, album): &(String, String, String)) -> Self {
@@ -286,28 +285,22 @@ pub mod metadata {
     }
 
     /// Converts from vector of `&str` tuples, in the form `(artist, track, album)`.
-    /// 
+    ///
     /// Designed to make it easier to cooperate with other track info types.
     impl From<Vec<(&str, &str, &str)>> for ScrobbleBatch {
         fn from(collection: Vec<(&str, &str, &str)>) -> Self {
-            let scrobbles: Vec<Scrobble> = collection
-                                .iter()
-                                .map(Scrobble::from)
-                                .collect();
+            let scrobbles: Vec<Scrobble> = collection.iter().map(Scrobble::from).collect();
 
             ScrobbleBatch::from(scrobbles)
         }
     }
 
     /// Converts from vector of `String` tuples, in the form `(artist, track, album)`.
-    /// 
+    ///
     /// Designed to make it easier to cooperate with other track info types.
     impl From<Vec<(String, String, String)>> for ScrobbleBatch {
         fn from(collection: Vec<(String, String, String)>) -> Self {
-            let scrobbles: Vec<Scrobble> = collection
-                                .iter()
-                                .map(Scrobble::from)
-                                .collect();
+            let scrobbles: Vec<Scrobble> = collection.iter().map(Scrobble::from).collect();
 
             ScrobbleBatch::from(scrobbles)
         }

@@ -3,10 +3,10 @@ use std::fmt;
 use std::time::SystemTimeError;
 
 /// Represents an Error that occurred while interacting with the Last.fm API
-/// 
+///
 /// `ScrobblerError` contains an error message, which is set when an error occurs and exposed via Trait standard error
-/// Trait implementations. 
-/// 
+/// Trait implementations.
+///
 /// Most error handling for clients can operate off the `Ok`/`Err` signaling from the `Result` types of API operations,
 /// however this error type is exposed in case you want to implement more complex error handling.
 #[derive(Debug)]

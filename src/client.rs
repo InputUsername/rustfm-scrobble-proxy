@@ -76,8 +76,8 @@ impl LastFm {
         Ok(decoded.session)
     }
 
-    /// Authenticates with a session key 
-    /// 
+    /// Authenticates with a session key
+    ///
     /// This requires no initial authentication with the API, so we simply store the key. It must be a valid session
     /// key. Session keys are documented at `Scrobbler::authenticate_with_session_key`.
     pub fn authenticate_with_session_key(&mut self, session_key: &str) {

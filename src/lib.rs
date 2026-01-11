@@ -5,12 +5,12 @@
 //!
 //! Client for the Last.fm Scrobble API v2.0. Allows easy access to the most-commonly used Scrobble/Now Playing
 //! endpoints in the Last.fm API, as well as robust support for multiple authentication flows. More advanced API
-//! features such as metadata correction are also exposed to help build more sophisticated Scrobble clients. 
-//! 
-//! The primary types to use are `Scrobbler` - the actual client, which you will authenticate and then use to send 
+//! features such as metadata correction are also exposed to help build more sophisticated Scrobble clients.
+//!
+//! The primary types to use are `Scrobbler` - the actual client, which you will authenticate and then use to send
 //! scrobble requests - and `Scrobble` - which represents a single track played at a point in time. An example using
 //! these types to scrobble a track to Last.fm is given below.
-//! 
+//!
 //! # Example usage
 //! ```ignore
 //! use rustfm_scrobble_proxy::{Scrobble, Scrobbler};
@@ -37,12 +37,12 @@
 //!    Ok(())
 //! }
 //! ```
-//! 
+//!
 //! *Note:* This crate does not implement any of the logic to comply with Last.fm's scrobbling rules. Typical
-//! ("real-time") implementations will likely want to adhere to these rules, outlined in Last.fm's 
+//! ("real-time") implementations will likely want to adhere to these rules, outlined in Last.fm's
 //! [API Documentation](https://www.last.fm/api/scrobbling#scrobble-requests). Other implementations may choose to
 //! ignore these guidelines. This crate provides the flexibility to develop any type of Scrobbling application.
-//! 
+//!
 #[macro_use]
 extern crate wrapped_vec;
 
@@ -52,13 +52,12 @@ mod error;
 mod models;
 mod scrobbler;
 
+pub use crate::error::ScrobblerError;
 pub use crate::models::metadata::{Scrobble, ScrobbleBatch};
 pub use crate::scrobbler::Scrobbler;
-pub use crate::error::ScrobblerError;
-
 
 /// Last.fm API Response Types
-/// 
+///
 /// Types used to represent responses from the Last.fm API
 pub mod responses {
     pub use crate::models::responses::{
