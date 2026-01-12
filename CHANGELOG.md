@@ -1,3 +1,8 @@
+Version 2.0.1 - unreleased
+========================
+
+  * Remove `wrapped-vec` dependency
+
 Version 2.0.0 - 2023-07-13
 ========================
 

@@ -1,3 +1,71 @@
+macro_rules! impl_collection {
+    (
+        $(#[$meta:meta])+
+        struct $name:ident($item:ty);
+    ) => {
+        $(#[$meta])+
+        pub struct $name(::std::vec::Vec<$item>);
+
+        impl $name {
+            #[doc = concat!("Creates a new, empty ", stringify!($name))]
+            pub fn new() -> Self {
+                Self(::std::vec::Vec::new())
+            }
+
+            #[doc = concat!("Returns true if the ", stringify!($name), " contains no ", stringify!($item), "s")]
+            pub fn is_empty(&self) -> bool {
+                self.0.is_empty()
+            }
+
+            #[doc = concat!("Returns the number of ", stringify!($item), "s in the ", stringify!($name))]
+            pub fn len(&self) -> usize {
+                self.0.len()
+            }
+
+            #[doc = concat!("Returns an iterator over the ", stringify!($name))]
+            pub fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, $item> {
+                self.into_iter()
+            }
+        }
+
+        impl ::std::iter::FromIterator<$item> for $name {
+            fn from_iter<I: ::std::iter::IntoIterator<Item=$item>>(iter: I) -> Self {
+                Self(::std::vec::Vec::from_iter(iter))
+            }
+        }
+
+        impl ::std::convert::From<Vec<$item>> for $name {
+            fn from(value: ::std::vec::Vec<$item>) -> Self {
+                Self(value)
+            }
+        }
+
+        impl ::std::iter::IntoIterator for $name {
+            type Item = $item;
+            type IntoIter = ::std::vec::IntoIter<$item>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                self.0.into_iter()
+            }
+        }
+
+        impl<'a> ::std::iter::IntoIterator for &'a $name {
+            type Item = &'a $item;
+            type IntoIter = ::std::slice::Iter<'a, $item>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                self.0.iter()
+            }
+        }
+
+        impl ::std::iter::Extend<$item> for $name {
+            fn extend<I: ::std::iter::IntoIterator<Item=$item>>(&mut self, iter: I) {
+                self.0.extend(iter)
+            }
+        }
+    };
+}
+
 pub mod responses {
 
     use std::fmt;
@@ -61,9 +129,7 @@ pub mod responses {
     /// metadata corrections the Last.fm API made to the arist/track/album submitted.
     ///
     /// [Scrobble Request API Documentation](https://www.last.fm/api/show/track.scrobble)
-    #[derive(Deserialize, Debug, WrappedVec)]
-    #[CollectionName = "ScrobbleList"]
-    #[CollectionDerives = "Debug, Deserialize"]
+    #[derive(Deserialize, Debug)]
     pub struct ScrobbleResponse {
         pub artist: CorrectableString,
         pub album: CorrectableString,
@@ -71,6 +137,11 @@ pub mod responses {
         pub album_artist: CorrectableString,
         pub track: CorrectableString,
         pub timestamp: String,
+    }
+
+    impl_collection! {
+        #[derive(Debug, Deserialize)]
+        struct ScrobbleList(ScrobbleResponse);
     }
 
     /// Response to a Batch Scrobble request
@@ -171,16 +242,19 @@ pub mod metadata {
     /// [`Scrobbler::now_playing`]: struct.Scrobbler.html#method.now_playing
     /// [`Scrobbler::scrobble`]: struct.Scrobbler.html#method.scrobble
     /// [`Scrobbler::scrobble_batch`]: struct.Scrobbler.html#method.scrobble_batch
-    #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, WrappedVec)]
-    #[CollectionName = "ScrobbleBatch"]
-    #[CollectionDoc = "A batch of Scrobbles to be submitted to Last.fm together."]
-    #[CollectionDerives = "Clone, Debug"]
+    #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
     pub struct Scrobble {
         artist: String,
         track: String,
         album: Option<String>,
 
         timestamp: Option<u64>,
+    }
+
+    impl_collection! {
+        /// A batch of Scrobbles to be submitted to Last.fm together.
+        #[derive(Clone, Debug)]
+        struct ScrobbleBatch(Scrobble);
     }
 
     impl Scrobble {

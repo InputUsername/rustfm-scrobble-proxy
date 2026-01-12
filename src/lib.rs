@@ -42,9 +42,6 @@
 //! ("real-time") implementations will likely want to adhere to these rules, outlined in Last.fm's
 //! [API Documentation](https://www.last.fm/api/scrobbling#scrobble-requests). Other implementations may choose to
 //! ignore these guidelines. This crate provides the flexibility to develop any type of Scrobbling application.
-//!
-#[macro_use]
-extern crate wrapped_vec;
 
 mod auth;
 mod client;
