@@ -2,6 +2,9 @@ Version 2.0.1 - unreleased
 ========================
 
   * Remove `wrapped-vec` dependency
+  * Update `attohttpc` dependency to v0.30
+  * Update `md5` dependency to v0.8
+  * Update `mockito` dev-dependency to v1
 
 Version 2.0.0 - 2023-07-13
 ========================

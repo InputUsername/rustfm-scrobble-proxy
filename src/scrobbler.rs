@@ -288,23 +288,30 @@ impl Scrobbler {
     pub fn session_key(&self) -> Option<&str> {
         self.client.session_key()
     }
+
+    #[cfg(test)]
+    fn set_base_url(&mut self, url: String) {
+        self.client.set_base_url(url);
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockito::mock;
     use std::error::Error;
 
     #[test]
     fn make_scrobbler_pass_auth() {
-        let _m = mock("POST", mockito::Matcher::Any).create();
+        let mut server = mockito::Server::new();
+        let _m = server.mock("POST", mockito::Matcher::Any).create();
 
         let mut scrobbler = Scrobbler::new("api_key", "api_secret");
+        scrobbler.set_base_url(server.url());
         let resp = scrobbler.authenticate_with_password("user", "pass");
         assert!(resp.is_err());
 
-        let _m = mock("POST", mockito::Matcher::Any)
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
                 {   
@@ -324,13 +331,16 @@ mod tests {
 
     #[test]
     fn make_scrobbler_token_auth() {
-        let _m = mock("POST", mockito::Matcher::Any).create();
+        let mut server = mockito::Server::new();
+        let _m = server.mock("POST", mockito::Matcher::Any).create();
 
         let mut scrobbler = Scrobbler::new("api_key", "api_secret");
+        scrobbler.set_base_url(server.url());
         let resp = scrobbler.authenticate_with_token("some_token");
         assert!(resp.is_err());
 
-        let _m = mock("POST", mockito::Matcher::Any)
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
                 {   
@@ -362,9 +372,13 @@ mod tests {
 
     #[test]
     fn check_scrobbler_now_playing() {
-        let mut scrobbler = Scrobbler::new("api_key", "api_secret");
+        let mut server = mockito::Server::new();
 
-        let _m = mock("POST", mockito::Matcher::Any)
+        let mut scrobbler = Scrobbler::new("api_key", "api_secret");
+        scrobbler.set_base_url(server.url());
+
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
                 {   
@@ -388,7 +402,8 @@ mod tests {
         );
         scrobble.with_timestamp(1337);
 
-        let _m = mock("POST", mockito::Matcher::Any)
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
             { 
@@ -410,9 +425,13 @@ mod tests {
 
     #[test]
     fn check_scrobbler_scrobble() {
-        let mut scrobbler = Scrobbler::new("api_key", "api_secret");
+        let mut server = mockito::Server::new();
 
-        let _m = mock("POST", mockito::Matcher::Any)
+        let mut scrobbler = Scrobbler::new("api_key", "api_secret");
+        scrobbler.set_base_url(server.url());
+
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
                 {   
@@ -436,7 +455,8 @@ mod tests {
         );
         scrobble.with_timestamp(1337);
 
-        let _m = mock("POST", mockito::Matcher::Any)
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
             { 

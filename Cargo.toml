@@ -11,10 +11,10 @@ categories = ["api-bindings", "multimedia"]
 edition = "2021"
 
 [dependencies]
-attohttpc = { version = "0.25", features = ["form"] }
-md5 = "0.7"
+attohttpc = { version = "0.30", features = ["form"] }
+md5 = "0.8"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 [dev-dependencies]
-mockito = "0.31"
+mockito = "1"

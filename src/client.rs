@@ -8,6 +8,8 @@ use crate::models::responses::{
     NowPlayingResponseWrapper, ScrobbleResponse, ScrobbleResponseWrapper, SessionResponse,
 };
 
+const BASE_URL: &str = "https://ws.audioscrobbler.com/2.0/?format=json";
+
 pub enum ApiOperation {
     AuthWebSession,
     AuthMobileSession,
@@ -28,6 +30,7 @@ impl fmt::Display for ApiOperation {
 }
 
 pub struct LastFm {
+    base_url: String,
     auth: Credentials,
 }
 
@@ -35,7 +38,10 @@ impl LastFm {
     pub fn new(api_key: &str, api_secret: &str) -> Self {
         let partial_auth = Credentials::new_partial(api_key, api_secret);
 
-        Self { auth: partial_auth }
+        Self {
+            base_url: BASE_URL.to_owned(),
+            auth: partial_auth,
+        }
     }
 
     pub fn set_user_credentials(&mut self, username: &str, password: &str) {
@@ -164,36 +170,39 @@ impl LastFm {
         operation: &ApiOperation,
         mut params: HashMap<String, String>,
     ) -> Result<attohttpc::Response, String> {
-        #[cfg(not(test))]
-        let url = "https://ws.audioscrobbler.com/2.0/?format=json";
-        #[cfg(test)]
-        let url = &mockito::server_url();
-
         let signature = self.auth.get_signature(operation.to_string(), &params);
 
         params.insert("method".to_string(), operation.to_string());
         params.insert("api_sig".to_string(), signature);
 
-        attohttpc::post(url)
+        attohttpc::post(&self.base_url)
             .form(&params)
             .map_err(|err| err.to_string())?
             .send()
             .and_then(|resp| resp.error_for_status())
             .map_err(|err| err.to_string())
     }
+
+    #[cfg(test)]
+    pub fn set_base_url(&mut self, url: String) {
+        self.base_url = url;
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockito::mock;
 
     #[test]
     fn check_send_api_requests() {
-        let _m = mock("POST", mockito::Matcher::Any)
+        let mut server = mockito::Server::new();
+
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .match_body(mockito::Matcher::Any)
             .create();
         let mut client = LastFm::new("key", "secret");
+        client.set_base_url(server.url());
         client.auth.set_user_credentials("username", "password");
         let params = client.auth.get_auth_request_params().unwrap();
 
@@ -216,9 +225,11 @@ mod tests {
 
     #[test]
     fn check_send_scrobble() {
-        let _m = mock("POST", mockito::Matcher::Any).create();
+        let mut server = mockito::Server::new();
+        let _m = server.mock("POST", mockito::Matcher::Any).create();
 
         let mut client = LastFm::new("key", "secret");
+        client.set_base_url(server.url());
         client.auth.set_user_credentials("username", "password");
         client.auth.set_session_key("SeshKey");
         let params = client.auth.get_auth_request_params().unwrap();
@@ -226,7 +237,8 @@ mod tests {
         let resp = client.send_scrobble(&params);
         assert!(resp.is_err());
 
-        let _m = mock("POST", mockito::Matcher::Any)
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
             { 
@@ -248,9 +260,11 @@ mod tests {
 
     #[test]
     fn check_send_batch_scrobble() {
-        let _m = mock("POST", mockito::Matcher::Any).create();
+        let mut server = mockito::Server::new();
+        let _m = server.mock("POST", mockito::Matcher::Any).create();
 
         let mut client = LastFm::new("key", "secret");
+        client.set_base_url(server.url());
         client.auth.set_user_credentials("username", "password");
         client.auth.set_session_key("SeshKey");
         let params = client.auth.get_auth_request_params().unwrap();
@@ -259,7 +273,8 @@ mod tests {
         assert!(resp.is_err());
 
         // Test with parsing single-scrobble response
-        let _m = mock("POST", mockito::Matcher::Any)
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
             { 
@@ -282,7 +297,8 @@ mod tests {
         assert!(resp.is_ok());
 
         // Test with parsing multi-scrobble response
-        let _m = mock("POST", mockito::Matcher::Any)
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
             { 
@@ -315,9 +331,11 @@ mod tests {
 
     #[test]
     fn check_send_now_playing() {
-        let _m = mock("POST", mockito::Matcher::Any).create();
+        let mut server = mockito::Server::new();
+        let _m = server.mock("POST", mockito::Matcher::Any).create();
 
         let mut client = LastFm::new("key", "secret");
+        client.set_base_url(server.url());
         client.auth.set_user_credentials("username", "password");
         client.auth.set_session_key("SeshKey");
         let params = client.auth.get_auth_request_params().unwrap();
@@ -325,7 +343,8 @@ mod tests {
         let resp = client.send_now_playing(&params);
         assert!(resp.is_err());
 
-        let _m = mock("POST", mockito::Matcher::Any)
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
             { 
@@ -347,16 +366,20 @@ mod tests {
 
     #[test]
     fn check_set_user_creds_and_token_then_auth() {
+        let mut server = mockito::Server::new();
+
         let mut client = LastFm::new("key", "secret");
+        client.set_base_url(server.url());
         client.set_user_credentials("user", "pass");
         client.set_user_token("SomeToken");
 
-        let _m = mock("POST", mockito::Matcher::Any).create();
+        let _m = server.mock("POST", mockito::Matcher::Any).create();
 
         let res = client.authenticate_with_password();
         assert!(res.is_err());
 
-        let _m = mock("POST", mockito::Matcher::Any)
+        let _m = server
+            .mock("POST", mockito::Matcher::Any)
             .with_body(
                 r#"
                 {   
