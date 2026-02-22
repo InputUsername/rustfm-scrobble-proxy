@@ -1,6 +1,6 @@
 [package]
 name = "rustfm-scrobble-proxy"
-version = "2.0.0"
+version = "2.0.1"
 authors = ["David Futcher <david@futcher.io>"]
 description = "Fork of rustfm-scrobble, a Last.fm Scrobble crate, adding proxy support"
 repository = "https://github.com/InputUsername/rustfm-scrobble-proxy"
